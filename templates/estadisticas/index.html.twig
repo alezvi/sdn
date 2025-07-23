@@ -1,0 +1,401 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Productos y Servicios{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">
+                        <i class="bi bi-box-seam me-2"></i>Estadísticas
+                    </h2>
+                    <a href="{{ path('app_producto_servicio_create') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Nuevo Producto/Servicio
+                    </a>
+                </div>
+
+                {# Flash Messages #}
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+
+                {# Panel de Estadísticas - Siempre visible #}
+                <div class="mb-4">
+                    <div class="card shadow-sm border-light-subtle">
+                        <div class="card-body">
+                            {# Resumen General #}
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card bg-primary text-white h-100">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-box-seam display-4"></i>
+                                            <h3 class="mt-2">{{ resumen.total ?? 0 }}</h3>
+                                            <p class="mb-0">Total General</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-success text-white h-100">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-box display-4"></i>
+                                            <h3 class="mt-2">{{ resumen.productos ?? 0 }}</h3>
+                                            <p class="mb-0">Productos</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-info text-white h-100">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-gear display-4"></i>
+                                            <h3 class="mt-2">{{ resumen.servicios ?? 0 }}</h3>
+                                            <p class="mb-0">Servicios</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-warning text-dark h-100">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-calendar-day display-4"></i>
+                                            <h3 class="mt-2">{{ resumen.hoy ?? 0 }}</h3>
+                                            <p class="mb-0">Hoy</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Estadísticas Detalladas #}
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">
+                                                <i class="bi bi-calendar-range me-1"></i>Estadísticas por Período
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row text-center">
+                                                <div class="col-6">
+                                                    <div class="border-end">
+                                                        <h5 class="text-success">{{ resumen.esta_semana ?? 0 }}</h5>
+                                                        <small class="text-muted">Esta Semana</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <h5 class="text-info">{{ resumen.semana_pasada ?? 0 }}</h5>
+                                                    <small class="text-muted">Semana Anterior</small>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                            <div class="row text-center">
+                                                <div class="col-6">
+                                                    <div class="border-end">
+                                                        <h5 class="text-primary">{{ resumen.este_mes ?? 0 }}</h5>
+                                                        <small class="text-muted">Este Mes</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <h5 class="text-secondary">{{ resumen.mes_pasado ?? 0 }}</h5>
+                                                    <small class="text-muted">Mes Anterior</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">
+                                                <i class="bi bi-clock-history me-1"></i>Elementos Recientes
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            {% if recientes is empty %}
+                                                <p class="text-muted text-center mb-0">No hay elementos recientes</p>
+                                            {% else %}
+                                                {% for reciente in recientes %}
+                                                    <div class="d-flex justify-content-between align-items-center{% if not loop.last %} border-bottom pb-2 mb-2{% endif %}">
+                                                        <div>
+                                                            <div class="fw-bold">{{ reciente.productoServicio|length > 25 ? reciente.productoServicio|slice(0, 25) ~ '...' : reciente.productoServicio }}</div>
+                                                            <small class="text-muted">{{ reciente.codigo }}</small>
+                                                        </div>
+                                                        <div class="text-end">
+                                                        <span class="badge bg-{{ reciente.tipo == 'P' ? 'success' : 'info' }}">
+                                                            {{ reciente.tipo == 'P' ? 'P' : 'S' }}
+                                                        </span>
+                                                            <br>
+                                                            <small class="text-muted">{{ reciente.createdAt|date('d/m H:i') }}</small>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Filtros y Gráfico #}
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">
+                                                <i class="bi bi-funnel me-1"></i>Filtros de Consulta
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <form method="GET" id="filtrosForm">
+                                                <div class="mb-3">
+                                                    <label for="periodo" class="form-label">Período</label>
+                                                    <select name="periodo" id="periodo" class="form-select" onchange="document.getElementById('filtrosForm').submit()">
+                                                        <option value="day"{{ filtros.periodo == 'day' ? ' selected' : '' }}>Por Día</option>
+                                                        <option value="week"{{ filtros.periodo == 'week' ? ' selected' : '' }}>Por Semana</option>
+                                                        <option value="month"{{ filtros.periodo == 'month' ? ' selected' : '' }}>Por Mes</option>
+                                                        <option value="year"{{ filtros.periodo == 'year' ? ' selected' : '' }}>Por Año</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="tipo" class="form-label">Tipo</label>
+                                                    <select name="tipo" id="tipo" class="form-select" onchange="document.getElementById('filtrosForm').submit()">
+                                                        <option value=""{{ filtros.tipo is null ? ' selected' : '' }}>Todos</option>
+                                                        <option value="P"{{ filtros.tipo == 'P' ? ' selected' : '' }}>Solo Productos</option>
+                                                        <option value="S"{{ filtros.tipo == 'S' ? ' selected' : '' }}>Solo Servicios</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="limit" class="form-label">Mostrar últimos</label>
+                                                    <select name="limit" id="limit" class="form-select" onchange="document.getElementById('filtrosForm').submit()">
+                                                        <option value="7"{{ filtros.limit == 7 ? ' selected' : '' }}>7</option>
+                                                        <option value="15"{{ filtros.limit == 15 ? ' selected' : '' }}>15</option>
+                                                        <option value="30"{{ filtros.limit == 30 ? ' selected' : '' }}>30</option>
+                                                        <option value="50"{{ filtros.limit == 50 ? ' selected' : '' }}>50</option>
+                                                    </select>
+                                                </div>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="window.location.href='{{ path('app_estadisticas') }}'">
+                                                    <i class="bi bi-arrow-clockwise me-1"></i>Resetear Filtros
+                                                </button>
+                                            </form>
+
+                                            {# Tabla de estadísticas #}
+                                            <div class="mt-4">
+                                                <h6>Datos del Gráfico</h6>
+                                                <div class="table-responsive" style="max-height: 300px;">
+                                                    <table class="table table-sm">
+                                                        <thead>
+                                                        <tr>
+                                                            <th>Período</th>
+                                                            <th class="text-end">Cantidad</th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        {% for stat in estadisticas %}
+                                                            <tr>
+                                                                <td>{{ stat.periodo }}</td>
+                                                                <td class="text-end">
+                                                                    <span class="badge bg-primary">{{ stat.cantidad }}</span>
+                                                                </td>
+                                                            </tr>
+                                                        {% else %}
+                                                            <tr>
+                                                                <td colspan="2" class="text-center text-muted">No hay datos disponibles</td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">
+                                                <i class="bi bi-bar-chart me-1"></i>Gráfico de Creación
+                                                <span class="badge bg-secondary ms-2">
+                                                {{ filtros.tipo == 'P' ? 'Solo Productos' : (filtros.tipo == 'S' ? 'Solo Servicios' : 'Todos') }}
+                                            </span>
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            {% if estadisticas is empty %}
+                                                <div class="text-center py-5">
+                                                    <i class="bi bi-graph-up display-4 text-muted"></i>
+                                                    <p class="text-muted mt-2">No hay datos para mostrar con los filtros actuales</p>
+                                                </div>
+                                            {% else %}
+                                                <canvas id="statisticsChart" style="height: 400px;"></canvas>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Modales de Vista #}
+    {% for producto in productos_servicios %}
+        <div class="modal fade" id="viewModal{{ producto.idProductoServicio }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-info-circle me-2"></i>Detalles del
+                            {{ producto.tipo == 'P' ? 'Producto' : 'Servicio' }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-4">Código:</dt>
+                                    <dd class="col-sm-8"><code>{{ producto.codigo }}</code></dd>
+
+                                    <dt class="col-sm-4">Nombre:</dt>
+                                    <dd class="col-sm-8">{{ producto.productoServicio }}</dd>
+
+                                    <dt class="col-sm-4">Tipo:</dt>
+                                    <dd class="col-sm-8">
+                                    <span class="badge bg-{{ producto.tipo == 'P' ? 'success' : 'info' }}">
+                                        {{ producto.tipo == 'P' ? 'Producto' : 'Servicio' }}
+                                    </span>
+                                    </dd>
+
+                                    <dt class="col-sm-4">Precio:</dt>
+                                    <dd class="col-sm-8">
+                                        <strong class="text-success">
+                                            ${{ producto.precioProductoUnitario|number_format(2, '.', ',') }}
+                                        </strong>
+                                    </dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-4">Rubro:</dt>
+                                    <dd class="col-sm-8">{{ producto.rubro.nombre ?? 'Sin rubro' }}</dd>
+
+                                    <dt class="col-sm-4">Unidad:</dt>
+                                    <dd class="col-sm-8">{{ producto.unidadMedida.descripcion ?? 'Sin unidad' }}</dd>
+
+                                    <dt class="col-sm-4">Condición IVA:</dt>
+                                    <dd class="col-sm-8">{{ producto.condicionIva.descripcion ?? 'Sin condición' }}</dd>
+
+                                    <dt class="col-sm-4">Fecha Creación:</dt>
+                                    <dd class="col-sm-8">
+                                        {{ producto.createdAt|date('d/m/Y H:i') }}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i>Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    {# Modales de confirmación para eliminar #}
+    {% for producto in productos_servicios %}
+        <div class="modal fade" id="deleteModal{{ producto.idProductoServicio }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Confirmar Eliminación
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            ¿Está seguro de que desea eliminar el
+                            {{ producto.tipo == 'P' ? 'producto' : 'servicio' }}
+                            <strong>{{ producto.productoServicio }}</strong>?
+                        </p>
+                        <p class="text-warning">
+                            <small>Esta acción no se puede deshacer.</small>
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-arrow-left me-1"></i>Cancelar
+                        </button>
+                        <a href="{{ path('app_producto_servicio_delete', {id: producto.idProductoServicio}) }}"
+                           class="btn btn-danger">
+                            <i class="bi bi-trash me-1"></i>Eliminar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <script>
+        // Esperar a que el DOM esté cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if estadisticas is not empty and chart_data is defined %}
+            // Verificar que Chart.js esté disponible
+            if (typeof Chart !== 'undefined') {
+                const ctx = document.getElementById('statisticsChart');
+                if (ctx) {
+                    const chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: {{ chart_data.labels|json_encode|raw }},
+                            datasets: [{
+                                label: 'Cantidad de {{ filtros.tipo == "P" ? "Productos" : (filtros.tipo == "S" ? "Servicios" : "Productos/Servicios") }}',
+                                data: {{ chart_data.data|json_encode|raw }},
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top'
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false
+                                }
+                            }
+                        }
+                    });
+                }
+            } else {
+                console.error('Chart.js no está disponible');
+            }
+            {% endif %}
+        });
+    </script>
+{% endblock %}
