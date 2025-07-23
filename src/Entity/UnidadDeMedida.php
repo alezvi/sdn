@@ -4,12 +4,16 @@ namespace App\Entity;
 
 use App\Repository\UnidadDeMedidaRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraints\Unique;
 use Symfony\UX\Turbo\Attribute\Broadcast;
 
 #[ORM\Entity(repositoryClass: UnidadDeMedidaRepository::class)]
 #[Broadcast]
+#[ORM\Table(name: 'unidades_de_medida')]
+#[UniqueEntity(fields: 'codigo', message: 'El código ya existe')]
 class UnidadDeMedida
 {
     #[ORM\Id]
@@ -20,6 +24,7 @@ class UnidadDeMedida
     #[ORM\Column(length: 5)]
     #[Unique(message: 'El código ya existe')]
     #[NotNull(message: 'El código es requerido')]
+    #[Assert\Regex('/\d+[a-zA-Z]+/', message: 'Solo numeros y letras')]
     private string $codigo;
 
     #[ORM\Column(length: 50)]
