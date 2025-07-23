@@ -40,6 +40,7 @@ class ProductoServicioType extends AbstractType
             ->add('unidadMedida', EntityType::class, [
                 'class' => UnidadDeMedida::class,
                 'choice_label' => 'unidad_medida',
+                'choice_value' => 'codigo',
                 'attr' => ['class' => 'form-control my-2'],
             ])
             ->add('condicionIva', EntityType::class, [
