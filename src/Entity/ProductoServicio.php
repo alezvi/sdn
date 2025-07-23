@@ -65,7 +65,7 @@ class ProductoServicio
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     #[Assert\NotNull(message: 'El precio es requerido')]
     #[Assert\PositiveOrZero(message: 'El precio debe ser mayor o igual a cero')]
-    private float $precio_producto_unitario;
+    private int $precio_producto_unitario;
 
     public function getIdProductoServicio(): int
     {
