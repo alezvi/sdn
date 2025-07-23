@@ -25,7 +25,7 @@ class ProductoServicio
     #[ORM\Column(length: 1)]
     #[Assert\NotBlank(message: 'El tipo es requerido')]
     #[Assert\Choice(
-        choices: [TiposDeItems::PRODUCTO, TiposDeItems::SERVICIO],
+        choices: [TiposDeItems::PRODUCTO->value, TiposDeItems::SERVICIO->value],
         message: 'El tipo debe ser producto o servicio'
     )]
     private string $tipo;
