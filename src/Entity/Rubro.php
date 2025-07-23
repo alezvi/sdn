@@ -22,8 +22,8 @@ class Rubro
         min: 1,
         max: 50,
         normalizer: 'trim',
-        minMessage: 'El nombre debe tener al menos 1 caracter',
-        maxMessage: 'El nombre debe tener hasta 50 caracteres',
+        minMessage: 'El nombre debe tener al menos {{ limit }} caracter',
+        maxMessage: 'El nombre debe tener hasta {{ limit }} caracteres',
     )]
     #[Assert\NotBlank(message: 'El nombre del rubro es requerido')]
     private string $rubro;
