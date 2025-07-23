@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Enum\TiposDeItems;
 use App\Repository\ProductoServicioRepository;
+use DateTime;
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -68,6 +70,26 @@ class ProductoServicio
     #[Assert\NotNull(message: 'El precio es requerido')]
     #[Assert\PositiveOrZero(message: 'El precio debe ser mayor o igual a cero')]
     private int $precio_producto_unitario;
+
+    #[ORM\Column(type: 'datetime')]
+    private DateTimeInterface $created_at;
+
+    #[ORM\PrePersist]
+    public function setCreatedAtValue(): void
+    {
+        $this->created_at = new DateTime();
+    }
+
+    public function getCreatedAt(): ?DateTimeInterface
+    {
+        return $this->created_at;
+    }
+
+    public function setCreatedAt(DateTimeInterface $created_at): static
+    {
+        $this->created_at = $created_at;
+        return $this;
+    }
 
     public function getIdProductoServicio(): int
     {
