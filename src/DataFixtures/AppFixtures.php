@@ -3,9 +3,11 @@
 namespace App\DataFixtures;
 
 use App\Entity\CondicionIVA;
+use App\Entity\ProductoServicio;
 use App\Entity\Rubro;
 use App\Entity\UnidadDeMedida;
-use App\Entity\User;
+use DateInterval;
+use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Random\RandomException;
@@ -17,6 +19,44 @@ class AppFixtures extends Fixture
         $this->loadRubros($manager);
         $this->loadUnidadesDeMedida($manager);
         $this->loadCondiciones($manager);
+        $this->loadProductos($manager);
+    }
+
+    private function loadRubros(ObjectManager $manager)
+    {
+        $file = file_get_contents(__DIR__ . '/../../public/data/ACTIVIDADES_ECONOMICAS_F883.txt');
+
+        $rubros = [];
+
+        foreach (explode("\n", $file) as $key => $line) {
+            if ($line === '') {
+                continue;
+            }
+            if ($key === 0) {
+                continue;
+            }
+
+            [, $rubro] = explode(';', $line);
+            $rubros[] = new Rubro()->setRubro(mb_strcut($rubro, 0, 50));
+        }
+
+        foreach ($rubros as $rubro) {
+            $manager->persist($rubro);
+        }
+
+        $manager->flush();
+    }
+
+    private function loadUnidadesDeMedida(ObjectManager $manager)
+    {
+        $unidades = (array)require_once __DIR__ . '/../../public/data/unidades_de_medida.php';
+
+        foreach ($unidades as $key => $unidad) {
+            $u = new UnidadDeMedida()->setUnidadMedida(mb_strcut($unidad, 0, 50))->setCodigo($key);
+            $manager->persist($u);
+        }
+
+        $manager->flush();
     }
 
     /**
@@ -39,41 +79,41 @@ class AppFixtures extends Fixture
         ];
 
         foreach ($condiciones as $key => $condicion) {
-            $c = new CondicionIVA()->setCondicionIVA($condicion)->setCodigo($key)->setAlicuota(random_int(0,50));
+            $c = new CondicionIVA()->setCondicionIVA($condicion)->setCodigo($key)->setAlicuota(random_int(0, 50));
             $manager->persist($c);
         }
 
         $manager->flush();
     }
 
-    private function loadUnidadesDeMedida(ObjectManager $manager)
+    /**
+     * @throws \DateInvalidOperationException
+     * @throws RandomException
+     */
+    private function loadProductos(ObjectManager $manager)
     {
-        $unidades = (array)require_once __DIR__ . '/../../public/data/unidades_de_medida.php';
+        $rubros = $manager->getRepository(Rubro::class)->findAll();
+        $unidades = $manager->getRepository(UnidadDeMedida::class)->findAll();
+        $condiciones = $manager->getRepository(CondicionIVA::class)->findAll();
 
-        foreach ($unidades as $key => $unidad) {
-            $u = new UnidadDeMedida()->setUnidadMedida(mb_strcut($unidad, 0, 50))->setCodigo($key);
-            $manager->persist($u);
-        }
+        for ($i = 0; $i < 1000; $i++) {
+            $item = new ProductoServicio();
+            $item->setTipo(random_int(0, 1) ? 'P' : 'S');
+            $item->setCodigo(random_int(1000000000, 9999999999));
+            $item->setProductoServicio('Producto no existente ' . random_int(1000000000, 9999999999));
+            $item->setPrecioProductoUnitario(random_int(100, 1000000));
+            $item->setRubro($rubros[random_int(0, count($rubros) - 1)]);
+            $item->setUnidadMedida($unidades[random_int(0, count($unidades) - 1)]);
+            $item->setCondicionIva($condiciones[random_int(0, count($condiciones) - 1)]);
 
-        $manager->flush();
-    }
+            $threeYearsAgo = new DateTime()->sub(new DateInterval('P3Y'))->getTimestamp();
+            $now = new DateTime()->getTimestamp();
 
-    private function loadRubros(ObjectManager $manager)
-    {
-        $file = file_get_contents(__DIR__ . '/../../public/data/ACTIVIDADES_ECONOMICAS_F883.txt');
+            $item->setCreatedAt(
+                new DateTime()->setTimestamp(random_int($threeYearsAgo, $now)),
+            );
 
-        $rubros = [];
-
-        foreach (explode("\n", $file) as $key => $line) {
-            if ($line === '') continue;
-            if ($key === 0) continue;
-
-            [, $rubro] = explode(';', $line);
-            $rubros[] = new Rubro()->setRubro(mb_strcut($rubro, 0, 50));
-        }
-
-        foreach ($rubros as $rubro) {
-            $manager->persist($rubro);
+            $manager->persist($item);
         }
 
         $manager->flush();
