@@ -9,6 +9,7 @@ use Symfony\UX\Turbo\Attribute\Broadcast;
 
 #[ORM\Entity(repositoryClass: RubroRepository::class)]
 #[Broadcast]
+#[ORM\Table(name: 'rubros')]
 class Rubro
 {
     #[ORM\Id]
