@@ -28,6 +28,11 @@ class Rubro
     #[Assert\NotBlank(message: 'El nombre del rubro es requerido')]
     private string $rubro;
 
+    public function getId(): ?int
+    {
+        return $this->id_rubro;
+    }
+
     public function getIdRubro(): ?int
     {
         return $this->id_rubro;

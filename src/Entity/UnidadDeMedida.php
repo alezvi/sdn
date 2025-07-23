@@ -31,6 +31,11 @@ class UnidadDeMedida
     #[NotNull(message: 'La unidad de medida es requerida')]
     private string $unidad_medida;
 
+    public function getId(): ?int
+    {
+        return $this->id_unidad_de_medida;
+    }
+
     public function getIdUnidadDeMedida(): ?int
     {
         return $this->id_unidad_de_medida;

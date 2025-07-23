@@ -37,6 +37,11 @@ class CondicionIVA
     #[Assert\NotBlank(message: 'La alicuota es requerida')]
     private float $alicuota;
 
+    public function getId(): ?int
+    {
+        return $this->id_condicion_iva;
+    }
+
     public function getIdCondicionIva(): ?int
     {
         return $this->id_condicion_iva;
