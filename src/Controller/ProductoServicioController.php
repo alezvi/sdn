@@ -34,7 +34,7 @@ final class ProductoServicioController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($productoServicio);
-//            $entityManager->flush();
+            $entityManager->flush();
 
             $this->addFlash('success', 'Producto creado exitosamente');
             return $this->redirectToRoute('app_producto_servicio');
