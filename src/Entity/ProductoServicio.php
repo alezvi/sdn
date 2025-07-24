@@ -13,7 +13,7 @@ use Symfony\UX\Turbo\Attribute\Broadcast;
 
 #[ORM\Entity(repositoryClass: ProductoServicioRepository::class)]
 #[UniqueEntity(fields: 'codigo')]
-#[Broadcast]
+//#[Broadcast]
 class ProductoServicio
 {
     #[ORM\Id]
@@ -168,7 +168,7 @@ class ProductoServicio
         return $this;
     }
 
-    public function getPrecioProductoUnitario(): float
+    public function getPrecioProductoUnitario(): string
     {
         return $this->precio_producto_unitario;
     }
