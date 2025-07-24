@@ -1,0 +1,267 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Productos y Servicios{% endblock %}
+
+{% block body %}
+    {% include '_partials/navbar.html.twig' %}
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">
+                        <i class="bi bi-box-seam me-2"></i>Productos y Servicios
+                    </h2>
+                    <a href="{{ path('app_producto_servicio_create') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Nuevo Producto/Servicio
+                    </a>
+                </div>
+
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show"
+                             role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h5 class="mb-0">Lista de Productos y Servicios</h5>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <small class="text-muted">
+                                    Total: {{ productos_servicios|length }} elementos
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-0">
+                        {% if productos_servicios is empty %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-box display-1 text-muted"></i>
+                                <h4 class="text-muted mt-3">No hay productos o servicios registrados</h4>
+                                <p class="text-muted">Comienza agregando tu primer producto o servicio.</p>
+                                <a href="{{ path('app_producto_servicio_create') }}" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle me-1"></i>Crear Producto/Servicio
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-dark">
+                                    <tr>
+                                        <th scope="col" class="text-center">#</th>
+                                        <th scope="col">Código</th>
+                                        <th scope="col">Nombre</th>
+                                        <th scope="col" class="text-center">Tipo</th>
+                                        <th scope="col">Rubro</th>
+                                        <th scope="col">Unidad</th>
+                                        <th scope="col">Condición IVA</th>
+                                        <th scope="col" class="text-end">Precio</th>
+                                        <th scope="col" class="text-center">Fecha Creación</th>
+                                        <th scope="col" class="text-center">Acciones</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for producto in productos_servicios %}
+                                        <tr>
+                                            <td class="text-center align-middle">
+                                                <span
+                                                    class="badge bg-secondary">{{ producto.idProductoServicio }}</span>
+                                            </td>
+                                            <td class="align-middle">
+                                                <code class="text-primary">{{ producto.codigo }}</code>
+                                            </td>
+                                            <td class="align-middle">
+                                                <strong>{{ producto.productoServicio }}</strong>
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                {% if producto.tipo == 'P' %}
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-box me-1"></i>Producto
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-info">
+                                                        <i class="bi bi-gear me-1"></i>Servicio
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="align-middle">
+                                                <span
+                                                    class="text-muted">{{ producto.rubro.nombre ?? 'Sin rubro' }}</span>
+                                            </td>
+                                            <td class="align-middle">
+                                                {{ producto.unidadMedida.descripcion ?? 'Sin unidad' }}
+                                            </td>
+                                            <td class="align-middle">
+                                                <small
+                                                    class="text-muted">{{ producto.condicionIva.descripcion ?? 'Sin condición' }}</small>
+                                            </td>
+                                            <td class="text-end align-middle">
+                                                <strong class="text-success">
+                                                    ${{ producto.precioProductoUnitario|number_format(2, '.', ',') }}
+                                                </strong>
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                <small class="text-muted">
+                                                    {{ producto.createdAt|date('d/m/Y') }}<br>
+                                                    <span class="text-muted">{{ producto.createdAt|date('H:i') }}</span>
+                                                </small>
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                <div class="btn-group" role="group" aria-label="Acciones">
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-info"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#viewModal{{ producto.idProductoServicio }}"
+                                                            title="Ver detalles">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                    <a href="{{ path('app_producto_servicio_edit', {id: producto.idProductoServicio}) }}"
+                                                       class="btn btn-sm btn-outline-warning"
+                                                       title="Editar">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-danger"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deleteModal{{ producto.idProductoServicio }}"
+                                                            title="Eliminar">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if productos_servicios is not empty %}
+                        <div class="card-footer text-muted">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <small>
+                                        Mostrando {{ productos_servicios|length }}
+                                        {{ productos_servicios|length == 1 ? 'elemento' : 'elementos' }}
+                                    </small>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <small>Última actualización: {{ "now"|date('d/m/Y H:i') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for producto in productos_servicios %}
+        <div class="modal fade" id="viewModal{{ producto.idProductoServicio }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-info-circle me-2"></i>Detalles del
+                            {{ producto.tipo == 'P' ? 'Producto' : 'Servicio' }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-4">Código:</dt>
+                                    <dd class="col-sm-8"><code>{{ producto.codigo }}</code></dd>
+
+                                    <dt class="col-sm-4">Nombre:</dt>
+                                    <dd class="col-sm-8">{{ producto.productoServicio }}</dd>
+
+                                    <dt class="col-sm-4">Tipo:</dt>
+                                    <dd class="col-sm-8">
+                                    <span class="badge bg-{{ producto.tipo == 'P' ? 'success' : 'info' }}">
+                                        {{ producto.tipo == 'P' ? 'Producto' : 'Servicio' }}
+                                    </span>
+                                    </dd>
+
+                                    <dt class="col-sm-4">Precio:</dt>
+                                    <dd class="col-sm-8">
+                                        <strong class="text-success">
+                                            ${{ producto.precioProductoUnitario|number_format(2, '.', ',') }}
+                                        </strong>
+                                    </dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-4">Rubro:</dt>
+                                    <dd class="col-sm-8">{{ producto.rubro.nombre ?? 'Sin rubro' }}</dd>
+
+                                    <dt class="col-sm-4">Unidad:</dt>
+                                    <dd class="col-sm-8">{{ producto.unidadMedida.descripcion ?? 'Sin unidad' }}</dd>
+
+                                    <dt class="col-sm-4">Condición IVA:</dt>
+                                    <dd class="col-sm-8">{{ producto.condicionIva.descripcion ?? 'Sin condición' }}</dd>
+
+                                    <dt class="col-sm-4">Fecha Creación:</dt>
+                                    <dd class="col-sm-8">
+                                        {{ producto.createdAt|date('d/m/Y H:i') }}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i>Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    {# Modales de confirmación para eliminar #}
+    {% for producto in productos_servicios %}
+        <div class="modal fade" id="deleteModal{{ producto.idProductoServicio }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Confirmar Eliminación
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            ¿Está seguro de que desea eliminar el
+                            {{ producto.tipo == 'P' ? 'producto' : 'servicio' }}
+                            <strong>{{ producto.productoServicio }}</strong>?
+                        </p>
+                        <p class="text-warning">
+                            <small>Esta acción no se puede deshacer.</small>
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-arrow-left me-1"></i>Cancelar
+                        </button>
+                        <a href="{{ path('app_producto_servicio_delete', {id: producto.idProductoServicio}) }}"
+                           class="btn btn-danger">
+                            <i class="bi bi-trash me-1"></i>Eliminar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}
